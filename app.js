@@ -1,9 +1,7 @@
-// app.js（修正済み）
+// app.js（修正：当月+過去2ヶ月、動的に表示）
 
-// Chart.js Annotation プラグインを有効化
 Chart.register(window['chartjs-plugin-annotation']);
 
-// 初期データの保存
 if (!localStorage.getItem('appData')) {
   const initData = {
     total: 300000,
@@ -14,19 +12,23 @@ if (!localStorage.getItem('appData')) {
       "共通": 80000
     },
     monthlyAssets: {
+      "2025-01": 300000,
+      "2025-02": 300000,
+      "2025-03": 300000,
       "2025-04": 300000
     }
   };
   localStorage.setItem('appData', JSON.stringify(initData));
 }
 
-// データ読み込み
 const data = JSON.parse(localStorage.getItem('appData'));
 const today = new Date();
+// debag 
+// const today = new Date("2025-05-15");  // ← 仮に7月にしてみる
+
 const thisMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 const dateStr = today.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
 
-// DOM要素が存在するかを確認してから反映
 const dateEl = document.getElementById('date');
 const goalEl = document.getElementById('goal');
 const assetOEl = document.getElementById('asset-o');
@@ -41,7 +43,6 @@ if (assetMEl) assetMEl.value = data.assets["みー"];
 if (assetKEl) assetKEl.value = data.assets["共通"];
 if (totalEl) totalEl.textContent = data.total;
 
-// 保存処理
 function saveAssets() {
   const o = parseInt(assetOEl.value) || 0;
   const m = parseInt(assetMEl.value) || 0;
@@ -60,7 +61,6 @@ function saveAssets() {
   alert("保存しました！");
 }
 
-// 目標金額の保存
 function saveGoal() {
   const goal = parseInt(goalEl.value);
   if (isNaN(goal) || goal <= 0) return alert("有効な目標金額を入力してください");
@@ -71,7 +71,6 @@ function saveGoal() {
   alert("目標金額を設定しました！");
 }
 
-// 支出処理
 function addExpense() {
   const category = document.getElementById('category').value;
   const amount = parseInt(document.getElementById('expense').value);
@@ -91,30 +90,39 @@ function addExpense() {
   document.getElementById('expense').value = '';
   alert("支出を登録しました！");
 }
-
-// 月ラベル取得
-function getPastFourMonths() {
-  const result = [];
-  const now = new Date();
-  for (let i = 3; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    result.push(key);
+function getPastThreeMonths() {
+    const result = [];
+    for (let i = 2; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      result.push(key);
+    }
+    return result;
   }
-  return result;
-}
-
-function getMonthlyValues() {
-  const keys = getPastFourMonths();
-  return keys.map(k => data.monthlyAssets[k] ?? 0);
-}
-
-// グラフ生成
+  
+  function getMonthlyValues() {
+    const keys = getPastThreeMonths();
+    return keys.map(k => {
+      return (k === thisMonthKey ? data.total : (data.monthlyAssets[k] ?? 0));
+    });
+  }
+  
+  function updateChart() {
+    const monthKeys = getPastThreeMonths();
+    const monthLabels = monthKeys.map(k => `${parseInt(k.split('-')[1])}月`);
+    const monthValues = getMonthlyValues();
+  
+    chart.data.labels = monthLabels;
+    chart.data.datasets[0].data = monthValues;
+    chart.update();
+  }
+  
+  
 const chartCtx = document.getElementById('assetChart').getContext('2d');
 let chart = new Chart(chartCtx, {
   type: 'bar',
   data: {
-    labels: getPastFourMonths().map(k => `${parseInt(k.split('-')[1])}月`),
+    labels: getPastThreeMonths().map(k => `${parseInt(k.split('-')[1])}月`),
     datasets: [{
       label: '資産推移',
       data: getMonthlyValues(),
@@ -128,15 +136,15 @@ let chart = new Chart(chartCtx, {
         beginAtZero: true,
         suggestedMax: data.goal + 50000,
         ticks: {
-            font: {
-              size: 12  // ← Y軸の文字サイズを明示的に固定
-            }
+          font: {
+            size: 12
+          }
         }
       },
       x: {
         ticks: {
           font: {
-            size: 12  // ← X軸（月ラベルなど）も固定
+            size: 12
           }
         }
       }
@@ -162,12 +170,18 @@ let chart = new Chart(chartCtx, {
   }
 });
 
-// グラフ更新
 function updateChart() {
-  chart.data.datasets[0].data = getMonthlyValues();
-  chart.options.scales.y.suggestedMax = data.goal + 50000;
-  chart.options.plugins.annotation.annotations.goalLine.yMin = data.goal;
-  chart.options.plugins.annotation.annotations.goalLine.yMax = data.goal;
-  chart.options.plugins.annotation.annotations.goalLine.label.content = `目標：${data.goal}円`;
-  chart.update();
-}
+    const labels = getPastThreeMonths().map(k => `${parseInt(k.split('-')[1])}月`);
+    const values = getMonthlyValues();
+  
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = values;
+  
+    chart.options.scales.y.suggestedMax = data.goal + 50000;
+    chart.options.plugins.annotation.annotations.goalLine.yMin = data.goal;
+    chart.options.plugins.annotation.annotations.goalLine.yMax = data.goal;
+    chart.options.plugins.annotation.annotations.goalLine.label.content = `目標：${data.goal}円`;
+  
+    chart.update();
+  }
+  
