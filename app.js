@@ -126,7 +126,19 @@ let chart = new Chart(chartCtx, {
     scales: {
       y: {
         beginAtZero: true,
-        suggestedMax: data.goal + 50000
+        suggestedMax: data.goal + 50000,
+        ticks: {
+            font: {
+              size: 12  // ← Y軸の文字サイズを明示的に固定
+            }
+        }
+      },
+      x: {
+        ticks: {
+          font: {
+            size: 12  // ← X軸（月ラベルなど）も固定
+          }
+        }
       }
     },
     plugins: {

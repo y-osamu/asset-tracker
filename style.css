@@ -8,11 +8,10 @@ input, select, button {
   width: 80%;
   padding: 4px 6px;
 }
-
 #assetChart {
-  height: 300px !important;
-  max-height: 400px;
-}
+    height: 500px !important;   /* ← グラフを縦に大きく */
+    width: 100% !important;
+  }
 
 #chart-total {
   font-size: 1.5em;
