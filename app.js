@@ -1,6 +1,6 @@
-// app.js
+// app.js（修正済み）
 
-// Chart.js Annotation プラグインを有効化（Chart.js 読み込み後に必要）
+// Chart.js Annotation プラグインを有効化
 Chart.register(window['chartjs-plugin-annotation']);
 
 // 初期データの保存
@@ -21,23 +21,31 @@ if (!localStorage.getItem('appData')) {
 }
 
 // データ読み込み
-let data = JSON.parse(localStorage.getItem('appData'));
+const data = JSON.parse(localStorage.getItem('appData'));
 const today = new Date();
 const thisMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 const dateStr = today.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-document.getElementById('date').textContent = dateStr;
-document.getElementById('goal').value = data.goal;
-document.getElementById('asset-o').value = data.assets["おー"];
-document.getElementById('asset-m').value = data.assets["みー"];
-document.getElementById('asset-k').value = data.assets["共通"];
-document.getElementById('total').textContent = data.total;
-document.getElementById('chart-total-value').textContent = data.total;
+
+// DOM要素が存在するかを確認してから反映
+const dateEl = document.getElementById('date');
+const goalEl = document.getElementById('goal');
+const assetOEl = document.getElementById('asset-o');
+const assetMEl = document.getElementById('asset-m');
+const assetKEl = document.getElementById('asset-k');
+const totalEl = document.getElementById('total');
+
+if (dateEl) dateEl.textContent = dateStr;
+if (goalEl) goalEl.value = data.goal;
+if (assetOEl) assetOEl.value = data.assets["おー"];
+if (assetMEl) assetMEl.value = data.assets["みー"];
+if (assetKEl) assetKEl.value = data.assets["共通"];
+if (totalEl) totalEl.textContent = data.total;
 
 // 保存処理
 function saveAssets() {
-  const o = parseInt(document.getElementById('asset-o').value) || 0;
-  const m = parseInt(document.getElementById('asset-m').value) || 0;
-  const k = parseInt(document.getElementById('asset-k').value) || 0;
+  const o = parseInt(assetOEl.value) || 0;
+  const m = parseInt(assetMEl.value) || 0;
+  const k = parseInt(assetKEl.value) || 0;
   const total = o + m + k;
 
   data.assets["おー"] = o;
@@ -47,15 +55,14 @@ function saveAssets() {
   data.monthlyAssets[thisMonthKey] = total;
 
   localStorage.setItem('appData', JSON.stringify(data));
-  document.getElementById('total').textContent = total;
-  document.getElementById('chart-total-value').textContent = total;
+  totalEl.textContent = total;
   updateChart();
   alert("保存しました！");
 }
 
 // 目標金額の保存
 function saveGoal() {
-  const goal = parseInt(document.getElementById('goal').value);
+  const goal = parseInt(goalEl.value);
   if (isNaN(goal) || goal <= 0) return alert("有効な目標金額を入力してください");
 
   data.goal = goal;
@@ -76,12 +83,10 @@ function addExpense() {
 
   localStorage.setItem('appData', JSON.stringify(data));
 
-  document.getElementById('asset-o').value = data.assets["おー"];
-  document.getElementById('asset-m').value = data.assets["みー"];
-  document.getElementById('asset-k').value = data.assets["共通"];
-  document.getElementById('total').textContent = data.total;
-  document.getElementById('chart-total-value').textContent = data.total;
-  updateChart();
+  assetOEl.value = data.assets["おー"];
+  assetMEl.value = data.assets["みー"];
+  assetKEl.value = data.assets["共通"];
+  totalEl.textContent = data.total;
 
   document.getElementById('expense').value = '';
   alert("支出を登録しました！");
