@@ -7,8 +7,73 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
   <script src="app.js" defer></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 40px;
+      text-align: center;
+    }
+    #header {
+      margin-bottom: 40px;
+    }
+    #summary-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+    }
+    #chart-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    #popup {
+      display: none;
+      position: fixed;
+      top: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      z-index: 1000;
+      text-align: center;
+      min-width: 320px;
+    }
+    #popup button.close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      font-size: 1.6em;
+      color: #666;
+      cursor: pointer;
+    }
+    #custom-input {
+      font-size: 2em;
+      margin: 10px auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      width: 80%;
+      border-radius: 8px;
+    }
+    #keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    #keypad button {
+      font-size: 1.2em;
+      padding: 12px;
+    }
+  </style>
 </head>
 <body>
+
+  <!-- ヘッダー -->
   <div id="header">
     <h2 id="date">日付</h2>
     <div id="summary-row">
@@ -17,22 +82,27 @@
     </div>
   </div>
 
+  <!-- グラフ -->
   <div id="main">
     <div id="chart-container">
       <canvas id="assetChart" width="400" height="300"></canvas>
     </div>
   </div>
 
-  <div id="popup" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: white; padding: 40px; border-radius: 16px; box-shadow: 0 0 20px rgba(0,0,0,0.3); z-index: 1000; text-align: center; min-width: 320px; position: relative;">
-    <button onclick="hidePopup()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 1.6em;">✕</button>
+  <!-- ポップアップ入力UI -->
+  <div id="popup">
+    <button class="close-btn" onclick="hidePopup()">✕</button>
     <h2>本日の支出を記録</h2>
-    <select id="popup-category">
+
+    <select id="popup-category" style="font-size: 1.2em; padding: 8px; width: 80%; margin-bottom: 20px;">
       <option value="おー">おー</option>
       <option value="みー">みー</option>
       <option value="共通">共通</option>
     </select>
-    <div id="custom-input" style="font-size: 2em; margin: 10px auto;">0</div>
-    <div id="keypad" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+
+    <div id="custom-input">0</div>
+
+    <div id="keypad">
       <button onclick="appendDigit(1)">1</button>
       <button onclick="appendDigit(2)">2</button>
       <button onclick="appendDigit(3)">3</button>
@@ -47,5 +117,6 @@
       <button onclick="submitKeypadInput()">OK</button>
     </div>
   </div>
+
 </body>
 </html>
