@@ -1,5 +1,3 @@
-// app.js（修正：当月+過去2ヶ月、動的に表示）
-
 Chart.register(window['chartjs-plugin-annotation']);
 
 if (!localStorage.getItem('appData')) {
@@ -9,179 +7,142 @@ if (!localStorage.getItem('appData')) {
     assets: {
       "おー": 120000,
       "みー": 100000,
-      "共通": 80000
-    },
-    monthlyAssets: {
-      "2025-01": 300000,
-      "2025-02": 300000,
-      "2025-03": 300000,
-      "2025-04": 300000
+      "共通": 80000,
+      "負債": -20000
     }
   };
   localStorage.setItem('appData', JSON.stringify(initData));
 }
 
-const data = JSON.parse(localStorage.getItem('appData'));
-const today = new Date();
-// debag 
-// const today = new Date("2025-05-15");  // ← 仮に7月にしてみる
-
-const thisMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-const dateStr = today.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-
-const dateEl = document.getElementById('date');
-const goalEl = document.getElementById('goal');
-const assetOEl = document.getElementById('asset-o');
-const assetMEl = document.getElementById('asset-m');
-const assetKEl = document.getElementById('asset-k');
+let data = JSON.parse(localStorage.getItem('appData'));
 const totalEl = document.getElementById('total');
+const dateEl = document.getElementById('date');
+const today = new Date();
 
-if (dateEl) dateEl.textContent = dateStr;
-if (goalEl) goalEl.value = data.goal;
-if (assetOEl) assetOEl.value = data.assets["おー"];
-if (assetMEl) assetMEl.value = data.assets["みー"];
-if (assetKEl) assetKEl.value = data.assets["共通"];
+if (dateEl) {
+  dateEl.textContent = today.toLocaleDateString('ja-JP', {
+    year: 'numeric', month: 'long', day: 'numeric'
+  });
+}
 if (totalEl) totalEl.textContent = data.total;
 
-function saveAssets() {
-  const o = parseInt(assetOEl.value) || 0;
-  const m = parseInt(assetMEl.value) || 0;
-  const k = parseInt(assetKEl.value) || 0;
-  const total = o + m + k;
-
-  data.assets["おー"] = o;
-  data.assets["みー"] = m;
-  data.assets["共通"] = k;
-  data.total = total;
-  data.monthlyAssets[thisMonthKey] = total;
-
-  localStorage.setItem('appData', JSON.stringify(data));
-  totalEl.textContent = total;
-  updateChart();
-  alert("保存しました！");
-}
-
-function saveGoal() {
-  const goal = parseInt(goalEl.value);
-  if (isNaN(goal) || goal <= 0) return alert("有効な目標金額を入力してください");
-
-  data.goal = goal;
-  localStorage.setItem('appData', JSON.stringify(data));
-  updateChart();
-  alert("目標金額を設定しました！");
-}
-
-function addExpense() {
-  const category = document.getElementById('category').value;
-  const amount = parseInt(document.getElementById('expense').value);
-  if (isNaN(amount) || amount <= 0) return alert("金額を正しく入力してください");
-
-  data.assets[category] = Math.max(0, data.assets[category] - amount);
-  data.total = data.assets["おー"] + data.assets["みー"] + data.assets["共通"];
-  data.monthlyAssets[thisMonthKey] = data.total;
-
-  localStorage.setItem('appData', JSON.stringify(data));
-
-  assetOEl.value = data.assets["おー"];
-  assetMEl.value = data.assets["みー"];
-  assetKEl.value = data.assets["共通"];
-  totalEl.textContent = data.total;
-
-  document.getElementById('expense').value = '';
-  alert("支出を登録しました！");
-}
-function getPastThreeMonths() {
-    const result = [];
-    for (let i = 2; i >= 0; i--) {
-      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      result.push(key);
-    }
-    return result;
-  }
-  
-  function getMonthlyValues() {
-    const keys = getPastThreeMonths();
-    return keys.map(k => {
-      return (k === thisMonthKey ? data.total : (data.monthlyAssets[k] ?? 0));
-    });
-  }
-  
-  function updateChart() {
-    const monthKeys = getPastThreeMonths();
-    const monthLabels = monthKeys.map(k => `${parseInt(k.split('-')[1])}月`);
-    const monthValues = getMonthlyValues();
-  
-    chart.data.labels = monthLabels;
-    chart.data.datasets[0].data = monthValues;
-    chart.update();
-  }
-  
-  
-const chartCtx = document.getElementById('assetChart').getContext('2d');
-let chart = new Chart(chartCtx, {
+const ctx = document.getElementById('assetChart').getContext('2d');
+let chart = new Chart(ctx, {
   type: 'bar',
   data: {
-    labels: getPastThreeMonths().map(k => `${parseInt(k.split('-')[1])}月`),
+    labels: ['資産合計'],
     datasets: [{
-      label: '資産推移',
-      data: getMonthlyValues(),
-      backgroundColor: 'rgba(54, 162, 235, 0.6)'
+      label: '資産合計',
+      data: [data.total],
+      backgroundColor: '#4caf50'
     }]
   },
   options: {
     responsive: true,
-    scales: {
-      y: {
-        beginAtZero: true,
-        suggestedMax: data.goal + 50000,
-        ticks: {
-          font: {
-            size: 12
+    plugins: {
+      tooltip: {
+        enabled: false,
+        external: function(context) {
+          const tooltipModel = context.tooltip;
+          let tooltipEl = document.getElementById('chartjs-tooltip');
+
+          if (!tooltipEl) {
+            tooltipEl = document.createElement('div');
+            tooltipEl.id = 'chartjs-tooltip';
+            tooltipEl.style.position = 'absolute';
+            tooltipEl.style.zIndex = '1001';
+            tooltipEl.style.background = 'white';
+            tooltipEl.style.padding = '16px';
+            tooltipEl.style.borderRadius = '12px';
+            tooltipEl.style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
+            tooltipEl.innerHTML = `
+              <strong>資産内訳</strong><br>
+              おー: <input id="tt-o" type="number" style="width:80px"><br>
+              みー: <input id="tt-m" type="number" style="width:80px"><br>
+              共通: <input id="tt-k" type="number" style="width:80px"><br>
+              負債: <input id="tt-d" type="number" style="width:80px"><br>
+              <button onclick="saveTooltipEdit()">保存</button>
+            `;
+            document.body.appendChild(tooltipEl);
           }
+
+          if (tooltipModel.opacity === 0) {
+            tooltipEl.style.opacity = 0;
+            return;
+          }
+
+          document.getElementById('tt-o').value = data.assets["おー"];
+          document.getElementById('tt-m').value = data.assets["みー"];
+          document.getElementById('tt-k').value = data.assets["共通"];
+          document.getElementById('tt-d').value = data.assets["負債"];
+
+          const pos = context.chart.canvas.getBoundingClientRect();
+          tooltipEl.style.left = pos.left + window.pageXOffset + tooltipModel.caretX + 'px';
+          tooltipEl.style.top = pos.top + window.pageYOffset + tooltipModel.caretY + 'px';
+          tooltipEl.style.opacity = 1;
         }
       },
-      x: {
-        ticks: {
-          font: {
-            size: 12
-          }
-        }
-      }
+      legend: { display: false }
     },
-    plugins: {
-      annotation: {
-        annotations: {
-          goalLine: {
-            type: 'line',
-            yMin: data.goal,
-            yMax: data.goal,
-            borderColor: 'red',
-            borderWidth: 2,
-            label: {
-              content: `目標：${data.goal}円`,
-              enabled: true,
-              position: 'start'
-            }
-          }
-        }
+    scales: {
+      y: {
+        beginAtZero: true
       }
     }
   }
 });
 
+window.saveTooltipEdit = function() {
+  data.assets["おー"] = parseInt(document.getElementById('tt-o').value) || 0;
+  data.assets["みー"] = parseInt(document.getElementById('tt-m').value) || 0;
+  data.assets["共通"] = parseInt(document.getElementById('tt-k').value) || 0;
+  data.assets["負債"] = parseInt(document.getElementById('tt-d').value) || 0;
+  updateChart();
+  localStorage.setItem('appData', JSON.stringify(data));
+  alert("保存しました！");
+};
+
 function updateChart() {
-    const labels = getPastThreeMonths().map(k => `${parseInt(k.split('-')[1])}月`);
-    const values = getMonthlyValues();
-  
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = values;
-  
-    chart.options.scales.y.suggestedMax = data.goal + 50000;
-    chart.options.plugins.annotation.annotations.goalLine.yMin = data.goal;
-    chart.options.plugins.annotation.annotations.goalLine.yMax = data.goal;
-    chart.options.plugins.annotation.annotations.goalLine.label.content = `目標：${data.goal}円`;
-  
-    chart.update();
-  }
-  
+  data.total = data.assets["おー"] + data.assets["みー"] + data.assets["共通"] + data.assets["負債"];
+  chart.data.datasets[0].data = [data.total];
+  chart.update();
+  totalEl.textContent = data.total;
+}
+
+function showPopup() {
+  document.getElementById('popup').style.display = 'block';
+}
+
+function hidePopup() {
+  document.getElementById('popup').style.display = 'none';
+}
+
+// テンキー処理
+let currentInput = "0";
+
+window.appendDigit = function(d) {
+  if (currentInput === "0") currentInput = "";
+  currentInput += d;
+  document.getElementById('custom-input').textContent = currentInput;
+};
+
+window.deleteDigit = function() {
+  currentInput = currentInput.slice(0, -1);
+  if (currentInput === "") currentInput = "0";
+  document.getElementById('custom-input').textContent = currentInput;
+};
+
+window.submitKeypadInput = function() {
+  const category = document.getElementById('popup-category').value;
+  const amount = parseInt(currentInput);
+  if (isNaN(amount) || amount <= 0) return alert("金額を正しく入力してください");
+
+  data.assets[category] -= amount;
+  updateChart();
+  localStorage.setItem('appData', JSON.stringify(data));
+
+  currentInput = "0";
+  document.getElementById('custom-input').textContent = currentInput;
+  hidePopup();
+  alert("支出を登録しました！");
+};

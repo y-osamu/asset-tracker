@@ -2,42 +2,49 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>資産管理アプリ</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
   <script src="app.js" defer></script>
-  
 </head>
 <body>
-  <div id="left">
+  <div id="header">
     <h2 id="date">日付</h2>
-    <h3>💰 資産トータル：<span id="total">--</span> 円</h3>
-    <p>おー：<input type="number" id="asset-o">円</p>
-    <p>みー：<input type="number" id="asset-m">円</p>
-    <p>共通：<input type="number" id="asset-k">円</p>
-    <button onclick="saveAssets()">保存</button>
+    <div id="summary-row">
+      <h3>💰 資産合計：<span id="total">--</span> 円</h3>
+      <button id="record-btn" onclick="showPopup()">📘 本日の記録</button>
+    </div>
+  </div>
 
+  <div id="main">
+    <div id="chart-container">
+      <canvas id="assetChart" width="400" height="300"></canvas>
+    </div>
+  </div>
 
-    <h3>📉 本日の支出</h3>
-    <select id="category">
+  <div id="popup" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: white; padding: 40px; border-radius: 16px; box-shadow: 0 0 20px rgba(0,0,0,0.3); z-index: 1000; text-align: center; min-width: 320px; position: relative;">
+    <button onclick="hidePopup()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 1.6em;">✕</button>
+    <h2>本日の支出を記録</h2>
+    <select id="popup-category">
       <option value="おー">おー</option>
       <option value="みー">みー</option>
       <option value="共通">共通</option>
     </select>
-    <input type="number" id="expense" placeholder="金額を入力" />
-    <button onclick="addExpense()">登録</button>
-  </div>
-
-  <div id="right">
-    <canvas id="assetChart"></canvas>
-  
-    <div id="goal-input">
-      <h3>🎯 目標金額</h3>
-      <input type="number" id="goal" placeholder="例：500000" />
-      <button onclick="saveGoal()">設定</button>
+    <div id="custom-input" style="font-size: 2em; margin: 10px auto;">0</div>
+    <div id="keypad" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+      <button onclick="appendDigit(1)">1</button>
+      <button onclick="appendDigit(2)">2</button>
+      <button onclick="appendDigit(3)">3</button>
+      <button onclick="appendDigit(4)">4</button>
+      <button onclick="appendDigit(5)">5</button>
+      <button onclick="appendDigit(6)">6</button>
+      <button onclick="appendDigit(7)">7</button>
+      <button onclick="appendDigit(8)">8</button>
+      <button onclick="appendDigit(9)">9</button>
+      <button onclick="appendDigit(0)">0</button>
+      <button onclick="deleteDigit()">←</button>
+      <button onclick="submitKeypadInput()">OK</button>
     </div>
   </div>
 </body>

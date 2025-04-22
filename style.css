@@ -1,37 +1,99 @@
-body { display: flex; font-family: sans-serif; margin: 0; }
-#left { width: 40%; padding: 20px; }
-#right { width: 60%; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-
-input, select, button {
-  font-size: 0.9em;
-  margin: 5px 0;
-  width: 40%;
-  padding: 4px 6px;
-}
-#assetChart {
-    height: 500px !important;   /* ← グラフを縦に大きく */
-    width: 100% !important;
-  }
-
-#chart-total {
-  font-size: 1.5em;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-#goal-input {
-    width: 80%;
-    margin-top: 20px;
-    font-size: 1em;
+/* 全体共通設定 */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Helvetica Neue', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
     text-align: center;
   }
-  #goal-input input {
-    width: 70%;
-    font-size: 1em;
-    padding: 6px;
+  
+  /* ヘッダー中央揃え */
+  #header {
+    padding: 20px;
   }
-  #goal-input button {
-    font-size: 1em;
-    margin-top: 5px;
-    padding: 6px 12px;
+  
+  /* 資産合計と記録ボタンの行 */
+  #summary-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 10px;
   }
+  
+  #summary-row h3 {
+    margin: 0;
+  }
+  
+  /* 本日の記録ボタン */
+  #record-btn {
+    font-size: 1.1em;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  #record-btn:hover {
+    background-color: #0056b3;
+  }
+  
+  /* メインエリア（グラフ & ポップアップ） */
+  #main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding: 20px;
+  }
+  
+  /* グラフコンテナ中央 */
+  #chart-container {
+    width: 90%;
+    max-width: 600px;
+  }
+  
+  canvas {
+    background: white;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  
+  /* ポップアップ UI */
+  #popup {
+    margin-top: 20px;
+  }
+  
+  #popup select,
+  #popup input {
+    display: block;
+    font-size: 1em;
+    padding: 8px;
+    margin: 10px auto;
+    width: 200px;
+  }
+  
+  #popup button {
+    margin: 5px;
+    padding: 8px 16px;
+    font-size: 1em;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  #popup button:last-child {
+    background-color: #6c757d;
+  }
+  
+  #popup button:hover {
+    opacity: 0.9;
+  }
+  
