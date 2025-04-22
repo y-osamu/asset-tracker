@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>資産管理アプリ</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { display: flex; font-family: sans-serif; }
+    #left { width: 40%; padding: 20px; }
+    #right { width: 60%; padding: 20px; }
+    input { font-size: 1.2em; width: 80%; }
+  </style>
+</head>
+<body>
+  <div id="left">
+    <h2>現在の資産：<span id="balance">100000</span>円</h2>
+    <p>本日の支出：<input type="number" id="expense" /> <button onclick="addExpense()">登録</button></p>
+  </div>
+  <div id="right">
+    <canvas id="assetChart"></canvas>
+  </div>
+
+  <script>
+    let balance = parseInt(localStorage.getItem('balance')) || 100000;
+    let monthlyAssets = JSON.parse(localStorage.getItem('monthlyAssets')) || [100000, 98000, 96000, 94000, 92000];
+
+    const balanceEl = document.getElementById('balance');
+    const chartCtx = document.getElementById('assetChart').getContext('2d');
+
+    const chart = new Chart(chartCtx, {
+      type: 'bar',
+      data: {
+        labels: ['1月', '2月', '3月', '4月', '5月'],
+        datasets: [{
+          label: '資産推移',
+          data: monthlyAssets,
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    function addExpense() {
+      const expense = parseInt(document.getElementById('expense').value);
+      if (isNaN(expense)) return;
+
+      balance -= expense;
+      balanceEl.textContent = balance;
+      monthlyAssets[monthlyAssets.length - 1] = balance;
+
+      localStorage.setItem('balance', balance);
+      localStorage.setItem('monthlyAssets', JSON.stringify(monthlyAssets));
+
+      chart.data.datasets[0].data = monthlyAssets;
+      chart.update();
+    }
+
+    balanceEl.textContent = balance;
+  </script>
+</body>
+</html>
