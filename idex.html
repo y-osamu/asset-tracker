@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>資産管理アプリ</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { display: flex; font-family: sans-serif; }
+    #left { width: 40%; padding: 20px; }
+    #right { width: 60%; padding: 20px; }
+    input, select, button { font-size: 1em; margin: 5px 0; width: 100%; }
+    h2 { margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div id="left">
+    <h2 id="date">日付</h2>
+    <h3>💰 資産トータル：<span id="total">--</span> 円</h3>
+    <p>おー：<input type="number" id="asset-o">円</p>
+    <p>みー：<input type="number" id="asset-m">円</p>
+    <p>共通：<input type="number" id="asset-k">円</p>
+    <button onclick="saveAssets()">保存</button>
+
+    <hr />
+    <h3>📉 本日の支出</h3>
+    <select id="category">
+      <option value="おー">おー</option>
+      <option value="みー">みー</option>
+      <option value="共通">共通</option>
+    </select>
+    <input type="number" id="expense" placeholder="金額を入力" />
+    <button onclick="addExpense()">登録</button>
+  </div>
+
+  <div id="right">
+    <canvas id="assetChart"></canvas>
+  </div>
+
+  <script>
+    // 初回アクセス時：初期データを保存
+    if (!localStorage.getItem('appData')) {
+      const initData = {
+        total: 300000,
+        assets: {
+          "おー": 120000,
+          "みー": 100000,
+          "共通": 80000
+        },
+        monthlyAssets: {
+          "2025-01": null,
+          "2025-02": null,
+          "2025-03": null,
+          "2025-04": 300000
+        }
+      };
+      localStorage.setItem('appData', JSON.stringify(initData));
+    }
+
+    // データ読み込み
+    let data = JSON.parse(localStorage.getItem('appData'));
+    const today = new Date();
+    const thisMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    const dateStr = today.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('date').textContent = dateStr;
+
+    // 表示に反映
+    document.getElementById('asset-o').value = data.assets["おー"];
+    document.getElementById('asset-m').value = data.assets["みー"];
+    document.getElementById('asset-k').value = data.assets["共通"];
+    document.getElementById('total').textContent = data.total;
+
+    function saveAssets() {
+      const o = parseInt(document.getElementById('asset-o').value) || 0;
+      const m = parseInt(document.getElementById('asset-m').value) || 0;
+      const k = parseInt(document.getElementById('asset-k').value) || 0;
+      const total = o + m + k;
+
+      data.assets["おー"] = o;
+      data.assets["みー"] = m;
+      data.assets["共通"] = k;
+      data.total = total;
+      data.monthlyAssets[thisMonthKey] = total;
+
+      localStorage.setItem('appData', JSON.stringify(data));
+      document.getElementById('total').textContent = total;
+      alert("保存しました！");
+      updateChart();
+    }
+
+    function addExpense() {
+      const category = document.getElementById('category').value;
+      const amount = parseInt(document.getElementById('expense').value);
+      if (isNaN(amount) || amount <= 0) {
+        alert("金額を正しく入力してください");
+        return;
+      }
+
+      // 減算処理
+      data.assets[category] = Math.max(0, data.assets[category] - amount);
+      data.total = data.assets["おー"] + data.assets["みー"] + data.assets["共通"];
+      data.monthlyAssets[thisMonthKey] = data.total;
+
+      // 保存
+      localStorage.setItem('appData', JSON.stringify(data));
+
+      // 表示更新
+      document.getElementById('asset-o').value = data.assets["おー"];
+      document.getElementById('asset-m').value = data.assets["みー"];
+      document.getElementById('asset-k').value = data.assets["共通"];
+      document.getElementById('total').textContent = data.total;
+
+      // グラフ更新
+      updateChart();
+
+      // 入力リセット
+      document.getElementById('expense').value = '';
+      alert("支出を登録しました！");
+    }
+
+    function getPastFourMonths() {
+      const result = [];
+      const now = new Date();
+      for (let i = 3; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        result.push(key);
+      }
+      return result;
+    }
+
+    function getMonthlyValues() {
+      const keys = getPastFourMonths();
+      return keys.map(k => data.monthlyAssets[k] ?? 0);
+    }
+
+    const chartCtx = document.getElementById('assetChart').getContext('2d');
+    const chart = new Chart(chartCtx, {
+      type: 'bar',
+      data: {
+        labels: getPastFourMonths().map(k => `${parseInt(k.split('-')[1])}月`),
+        datasets: [{
+          label: '資産推移',
+          data: getMonthlyValues()
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    function updateChart() {
+      chart.data.datasets[0].data = getMonthlyValues();
+      chart.update();
+    }
+  </script>
+</body>
+</html>
