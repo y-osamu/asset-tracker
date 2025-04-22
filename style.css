@@ -8,10 +8,14 @@ body {
     max-height: 100vh; /* iPad対応で上下に広がりすぎない */
     overflow: hidden;  /* スクロール防止（必要に応じて） */
   }
-  
-  /* ヘッダーをコンパクトに */
   #header {
-    padding: 8px 10px 4px 10px;
+    padding-top: 0;
+    margin-top: 0;
+  }
+/* 日付そのものの上マージンもリセット */
+#header h2 {
+    margin: 0;
+    padding: 0;
   }
   
   /* 資産合計とボタンの行 */
@@ -34,7 +38,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 0;         /* ← グラフとの間を詰める */
     padding: 10px;
   }
   
