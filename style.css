@@ -19,3 +19,20 @@ input, select, button {
   font-weight: bold;
   margin-top: 10px;
 }
+
+#goal-input {
+    width: 80%;
+    margin-top: 20px;
+    font-size: 1em;
+    text-align: center;
+  }
+  #goal-input input {
+    width: 70%;
+    font-size: 1em;
+    padding: 6px;
+  }
+  #goal-input button {
+    font-size: 1em;
+    margin-top: 5px;
+    padding: 6px 12px;
+  }

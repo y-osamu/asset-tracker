@@ -5,6 +5,8 @@
   <title>資産管理アプリ</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
 </head>
 <body>
   <div id="left">
@@ -15,12 +17,7 @@
     <p>共通：<input type="number" id="asset-k">円</p>
     <button onclick="saveAssets()">保存</button>
 
-    <hr />
-    <h3>🎯 目標金額</h3>
-    <input type="number" id="goal" placeholder="例：500000" />
-    <button onclick="saveGoal()">設定</button>
 
-    <hr />
     <h3>📉 本日の支出</h3>
     <select id="category">
       <option value="おー">おー</option>
@@ -33,9 +30,13 @@
 
   <div id="right">
     <canvas id="assetChart"></canvas>
-    <div id="chart-total">資産トータル：<span id="chart-total-value">--</span> 円</div>
-  </div>
-
+  
+    <div id="goal-input">
+      <h3>🎯 目標金額</h3>
+      <input type="number" id="goal" placeholder="例：500000" />
+      <button onclick="saveGoal()">設定</button>
+    </div>
+  </div>S
   <script src="app.js"></script>
 </body>
 </html>
