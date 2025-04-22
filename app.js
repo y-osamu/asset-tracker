@@ -82,7 +82,29 @@ let chart = new Chart(ctx, {
           tooltipEl.style.opacity = 1;
         }
       },
-      legend: { display: false }
+      legend: { display: false },
+      annotation: {
+        annotations: {
+          goalLine: {
+            type: 'line',
+            yMin: 700000,
+            yMax: 700000,
+            borderColor: 'red',
+            borderWidth: 2,
+            label: {
+              content: '目標：700000円',
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'rgba(255,255,255,0.8)',
+              color: 'red',
+              font: {
+                style: 'bold'
+              }
+            }
+          }
+        }
+      }
+
     },
     scales: {
       y: {
